@@ -56,7 +56,7 @@ void LPC::setLPC(int frameL, int frameT) {
 
 	// 高音強調
 	for (int m = 1; m < length; m++)
-		wav_pre[m] = Waving::DoubleToSample(((double)wav_base[m].left / 32768.0) - ((double)wav_base[m - 1].left / 32768.0) * 0.92);
+		wav_pre[m] = Waving::DoubleToSample(((double)wav_base[m].left / 32768.0) - ((double)wav_base[m - 1].left / 32768.0) * pre_emphasis);
 
 
 	// Order = (int)(sound.samplingRate() / 1000) + 2;
@@ -74,8 +74,7 @@ void LPC::setLPC(int frameL, int frameT) {
 
 	a = std::vector<double>(Order + 1, 0); // 線形予測係数
 	b = std::vector<double>(Order + 1, 0); // 誤差信号係数
-	root = std::vector<double>((Order) * 2, 0); // 根
-
+	
 	e = std::vector<double>(Frame_L, 0); // 残差信号
 	res_auto = std::vector<double>(Frame_L, 0); // 残差信号の自己相関関数
 
@@ -130,7 +129,7 @@ void LPC::calc_formant(int indexFrame) {
 	LPC::hanning_execute(indexFrame);
 	LPC::calc_ACF_FFT();
 	LPC::calc_Levinson_Durbin();
-	//LPC::calc_error();
+	LPC::calc_error();
 	//LPC::calc_ACF_FFT(res_auto, e);
 	LPC::calc_lpc_gain();
 	//LPC::calc_Normalization(lpc_gain);
@@ -151,6 +150,11 @@ void LPC::init() {
 	dbv = std::vector<double>(Frame_L, 0);
 	lpc_gain = std::vector<double>(Frame_L, 0);
 	lpc_dbv = std::vector<double>(Frame_L, 0);
+
+	a = std::vector<double>(Order + 1, 0);
+	b = std::vector<double>(Order + 1, 0);
+	
+	e_rms = 0.0;
 }
 
 void LPC::hanning_execute(int indexFrame) {
@@ -354,7 +358,11 @@ void LPC::calc_error() {
 	}
 
 	//残差信号
-	for (int j = 0; j < Frame_L; j++)e[j] = (signal[j] - y[j]) * (0.5 - 0.5*cos(2 * Pi*j / Frame_L));
+	for (int j = 0; j < Frame_L; j++) {
+		e[j] = (signal[j] - y[j]) * (0.5 - 0.5*cos(2 * Pi*j / Frame_L));
+		e_rms += e[j]*e[j];
+	}
+	e_rms = sqrt(e_rms/(double)Frame_L);
 }
 
 

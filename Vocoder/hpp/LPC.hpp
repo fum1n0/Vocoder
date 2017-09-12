@@ -6,7 +6,7 @@
 
 class LPC{
 
-private:
+protected:
 		
 	Sound sound; // 音声ファイル
 	std::string name; // 音声ファイル名
@@ -16,22 +16,26 @@ private:
 	Wave wav_zero; // 0-pound
 
 	unsigned long long int length ; // 音声サンプル数
-	int Frame_L; // フレーム長
-	int Frame_T; // フレーム周期
+	int Frame_L = 1024; // フレーム長
+	int Frame_T = 128; // フレーム周期
 	long leg; // 周期数 = 音声サンプル数/フレーム周期
 	long nowIndexFrame; // 現解析中の周期
 
-	Wave wav_ana;
+	double pre_emphasis = 0.30; // 高音強調割合
+	double de_emphasis = 0.30; // 低音強調割合
+
+	double e_rms = 0.0; // 二乗平均平方根
+
+	Wave wav_ana; // 解析用フレーム長音声切り出し部分
 	
 	const int Order = 46; // 解析次数
-	const unsigned int band_min = 0;
-	const unsigned int band_max = 350;
+	const unsigned int band_min = 0; // フォルマント帯域下限
+	const unsigned int band_max = 350; // フォルマント帯域上限
 
 	std::vector<double>signal; // フレーム長切り出しシグナル
 
 	std::vector<double>re; // 実数部分
 	std::vector<double>im; // 虚数部分
-	std::vector<double>freq; // 
 
 	std::vector<double>amp; // Amp
 	std::vector<double>power; //power
@@ -41,8 +45,7 @@ private:
 
 	std::vector<double>a; // 線形予測係数
 	std::vector<double>b; // 誤差信号係数
-	std::vector<double>root; // 根
-
+	
 	std::vector<double>y; // 予測信号
 
 	std::vector<double>e; // 残差信号

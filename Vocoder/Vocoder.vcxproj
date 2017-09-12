@@ -276,11 +276,13 @@
   <ItemGroup>
     <ClCompile Include="cpp\LPC.cpp" />
     <ClCompile Include="cpp\Main.cpp" />
+    <ClCompile Include="cpp\Whisper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hpp\header.hpp" />
     <ClInclude Include="hpp\LPC.hpp" />
     <ClInclude Include="hpp\matrix_util.hpp" />
+    <ClInclude Include="hpp\Whisper.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

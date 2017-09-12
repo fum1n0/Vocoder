@@ -1,13 +1,14 @@
 ﻿
-#include"../hpp/LPC.hpp"
+
+#include"../hpp/Whisper.hpp"
 
 void Main(){
 
 	Console::Open();
-
-	auto lpc = std::make_shared<LPC>();
-	lpc->calc_AllFormant();
 	
+	auto whisper = std::make_shared<Whisper>(1024,128);
+	whisper->createWhisper();
+
 	Console::Close();
 
 }
