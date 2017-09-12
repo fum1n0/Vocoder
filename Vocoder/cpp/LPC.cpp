@@ -129,13 +129,12 @@ void LPC::calc_formant(int indexFrame) {
 	LPC::hanning_execute(indexFrame);
 	LPC::calc_ACF_FFT();
 	LPC::calc_Levinson_Durbin();
-	LPC::calc_error();
-	//LPC::calc_ACF_FFT(res_auto, e);
-	LPC::calc_lpc_gain();
+	LPC::calc_PitchFreq();
+	//LPC::calc_lpc_gain();
 	//LPC::calc_Normalization(lpc_gain);
-	LPC::calc_lpc_dBV();
-	LPC::calc_roots();
-	LPC::count_formant(indexFrame);
+	//LPC::calc_lpc_dBV();
+	//LPC::calc_roots();
+	//LPC::count_formant(indexFrame);
 
 }
 
@@ -148,12 +147,16 @@ void LPC::init() {
 	amp = std::vector<double>(Frame_L, 0);
 	power = std::vector<double>(Frame_L, 0);
 	dbv = std::vector<double>(Frame_L, 0);
+	
 	lpc_gain = std::vector<double>(Frame_L, 0);
 	lpc_dbv = std::vector<double>(Frame_L, 0);
 
 	a = std::vector<double>(Order + 1, 0);
 	b = std::vector<double>(Order + 1, 0);
 	
+	r = std::vector<double>(Frame_L, 0);
+	e = std::vector<double>(Frame_L, 0);
+	res_auto = std::vector<double>(Frame_L, 0);
 	e_rms = 0.0;
 }
 
@@ -346,9 +349,11 @@ void LPC::calc_error() {
 	// ê¸å`ó\ë™
 	double tmp;
 	// ï‚ê≥Ç†ÇË,ê≥ãKâª
+		
 	for (int k = 0; k < Frame_L; k++) {
 		tmp = 0;
 		if (k < Order)y.push_back(signal[k]);
+		
 		else {
 			for (int j = 1; j < (int)a.size(); j++) {
 				tmp -= a[j] * (signal[k - j]);
@@ -358,11 +363,44 @@ void LPC::calc_error() {
 	}
 
 	//écç∑êMçÜ
-	for (int j = 0; j < Frame_L; j++) {
-		e[j] = (signal[j] - y[j]) * (0.5 - 0.5*cos(2 * Pi*j / Frame_L));
-		e_rms += e[j]*e[j];
+	for (int k = 0; k < Frame_L; k++) {
+						
+		if (Order < k) {
+			tmp = 0.0;
+			for (int j = 0; j < (int)a.size(); j++) {
+				tmp -= a[j] * (signal[k - j]);
+			}
+			e[k] = tmp;
+		}
+		
+		e_rms += e[k]*e[k];
 	}
+
 	e_rms = sqrt(e_rms/(double)Frame_L);
+
+
+	
+	/*std::string file_signal = "signal.txt";
+	std::ofstream writing_signal;
+	std::string file_y = "y.txt";
+	std::ofstream writing_y;
+	std::string file_e = "e.txt";
+	std::ofstream writing_e;	
+	
+	writing_signal.open(file_signal, std::ios::out);
+	writing_y.open(file_y, std::ios::out);
+	writing_e.open(file_e, std::ios::out);
+
+	for (int i = 0; i < Frame_L; i++) {
+		writing_signal << i << " " << signal[i] << std::endl;
+		writing_y << i << " " << y[i] << std::endl;
+		writing_e << i << " " << e[i] << std::endl;
+	}
+
+	writing_signal.close();
+	writing_y.close();
+	writing_e.close();*/
+
 }
 
 
@@ -488,5 +526,19 @@ void LPC::calc_roots() {
 	}
 
 	sort(freq_band.begin(), freq_band.end());
+
+}
+
+
+void LPC::calc_PitchFreq() {
+
+	LPC::calc_error();
+	LPC::calc_ACF_FFT(res_auto, e);
+	
+	std::vector<double>::iterator maxIt = std::max_element(res_auto.begin()+1, res_auto.end());
+	size_t maxIndex = std::distance(res_auto.begin(), maxIt);
+
+	pitch_freq = sound.samplingRate() / (double)maxIndex;
+	//std::cout <<"Pitch Freq: "<<pitch_freq <<"[Hz]"<< std::endl;
 
 }

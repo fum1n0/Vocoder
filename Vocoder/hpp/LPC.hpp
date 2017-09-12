@@ -21,10 +21,12 @@ protected:
 	long leg; // 周期数 = 音声サンプル数/フレーム周期
 	long nowIndexFrame; // 現解析中の周期
 
-	double pre_emphasis = 0.30; // 高音強調割合
+	double pre_emphasis = 0.92; // 高音強調割合
 	double de_emphasis = 0.30; // 低音強調割合
 
 	double e_rms = 0.0; // 二乗平均平方根
+
+	double pitch_freq; // ピッチ周波数
 
 	Wave wav_ana; // 解析用フレーム長音声切り出し部分
 	
@@ -71,21 +73,26 @@ public:
 
 	Wave erase_zeroAmp(Wave&);
 
-	void calc_formant(int);
 	void init();
-
+	void calc_formant(int);
+	
 	void hanning_execute(int);
 	void fft_excute(std::vector<double>&, std::vector<double>&, std::vector<double>&, int);
 	void calc_ACF_FFT();
 	void calc_ACF_FFT(std::vector<double>&, std::vector<double>&);
 	void calc_Levinson_Durbin();
+	
+	void calc_PitchFreq();
 	void calc_error();
+	
+
+
 	void calc_lpc_gain();
 	void calc_lpc_dBV();
 	void calc_Normalization(std::vector<double>&);
+	
 	void count_formant(int);
 	void calc_roots();
-
 	void calc_AllFormant();
 
 };

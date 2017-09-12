@@ -2,7 +2,7 @@
 
 #include"LPC.hpp"
 
-class Whisper : LPC{
+class Whisper : public LPC{
 
 private:
 
