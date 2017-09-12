@@ -76,8 +76,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SIV3D_20160812)\Inc;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SIV3D_20160812)\Lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SIV3D_20160812)\Inc;$(IncludePath);C:\Users\M\Documents\visual studio 2017\Library\eigen-eigen-3.2.8</IncludePath>
+    <LibraryPath>$(SIV3D_20160812)\Lib;$(LibraryPath);C:\Users\M\Documents\visual studio 2017\Library\eigen-eigen-3.2.8</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -86,8 +86,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SIV3D_20160812)\Inc;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SIV3D_20160812)\Lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SIV3D_20160812)\Inc;$(IncludePath);C:\Users\M\Documents\visual studio 2017\Library\eigen-eigen-3.2.8</IncludePath>
+    <LibraryPath>$(SIV3D_20160812)\Lib;$(LibraryPath);C:\Users\M\Documents\visual studio 2017\Library\eigen-eigen-3.2.8</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -272,6 +272,15 @@
   </ItemGroup>
   <ItemGroup>
     <Font Include="Example\YomogiFont.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="cpp\LPC.cpp" />
+    <ClCompile Include="cpp\Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="hpp\header.hpp" />
+    <ClInclude Include="hpp\LPC.hpp" />
+    <ClInclude Include="hpp\matrix_util.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
