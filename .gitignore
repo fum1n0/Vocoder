@@ -261,4 +261,4 @@ __pycache__/
 *.pyc
 /Vocoder/*.wav
 /Vocoder/*.txt
-/Vocoder/Engine/
+/Vocoder/Example/
