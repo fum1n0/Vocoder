@@ -130,9 +130,9 @@ void LPC::calc_formant(int indexFrame) {
 	LPC::calc_ACF_FFT();
 	LPC::calc_Levinson_Durbin();
 	LPC::calc_PitchFreq();
-	//LPC::calc_lpc_gain();
-	//LPC::calc_Normalization(lpc_gain);
-	//LPC::calc_lpc_dBV();
+	LPC::calc_lpc_gain();
+	LPC::calc_Normalization(lpc_gain);
+	LPC::calc_lpc_dBV();
 	//LPC::calc_roots();
 	//LPC::count_formant(indexFrame);
 
@@ -316,7 +316,7 @@ void LPC::calc_Levinson_Durbin() {
 	std::vector<double>V(a.size() + 1);
 
 
-	for (k = 1; k < (int)a.size() - 1; k++) {
+	for (k = 1; k < Order; k++) {
 		lambda = 0.0;
 		for (j = 0; j < k + 1; j++) {
 			lambda -= a[j] * r[k + 1 - j];
@@ -330,14 +330,9 @@ void LPC::calc_Levinson_Durbin() {
 		V[0] = 0.0;
 		for (j = k; j > 0; j--)V[k - j + 1] = a[j];
 		V[k - j + 1] = 1.0;
-
-		std::vector<double>v(k + 2);
-		for (int s = 0; s < (int)v.size(); s++) {
-			v[s] = V[s] * lambda;
-		}
-
-		for (int s = 0; s < (int)v.size(); s++) {
-			a[s] = U[s] + v[s];
+		
+		for (int s = 0; s <= k+1; s++) {
+			a[s] = U[s] + V[s] * lambda;
 		}
 
 		b[k + 1] = b[k] * (1.0 - lambda * lambda);
@@ -364,13 +359,15 @@ void LPC::calc_error() {
 
 	//残差信号
 	for (int k = 0; k < Frame_L; k++) {
-						
+			
+		
 		if (Order < k) {
 			tmp = 0.0;
 			for (int j = 0; j < (int)a.size(); j++) {
-				tmp -= a[j] * (signal[k - j]);
+				tmp += a[j] * (signal[k - j]);
 			}
-			e[k] = tmp;
+			//e[k] = tmp;
+			e[k] = tmp * (0.5 - 0.5*cos(2 * Pi*k / Frame_L)); // ハニング窓
 		}
 		
 		e_rms += e[k]*e[k];
@@ -379,8 +376,8 @@ void LPC::calc_error() {
 	e_rms = sqrt(e_rms/(double)Frame_L);
 
 
-	
-	/*std::string file_signal = "signal.txt";
+	// output file
+	std::string file_signal = "signal.txt";
 	std::ofstream writing_signal;
 	std::string file_y = "y.txt";
 	std::ofstream writing_y;
@@ -399,7 +396,7 @@ void LPC::calc_error() {
 
 	writing_signal.close();
 	writing_y.close();
-	writing_e.close();*/
+	writing_e.close();
 
 }
 
@@ -539,6 +536,6 @@ void LPC::calc_PitchFreq() {
 	size_t maxIndex = std::distance(res_auto.begin(), maxIt);
 
 	pitch_freq = sound.samplingRate() / (double)maxIndex;
-	//std::cout <<"Pitch Freq: "<<pitch_freq <<"[Hz]"<< std::endl;
+	std::cout <<"Pitch Freq: "<<pitch_freq <<"[Hz]"<< std::endl;
 
 }

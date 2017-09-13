@@ -20,49 +20,44 @@ void Whisper::createWhiteNoise() {
 
 	std::random_device seed_gen;
 	std::default_random_engine engine(seed_gen());
-	// 0.0à»è„1.0ñ¢ñûÇÃílÇìôämó¶Ç≈î≠ê∂Ç≥ÇπÇÈ
 	std::uniform_real_distribution<> dist(-1.0, 1.0);
-	
-
-	for (int i = 0; i < Frame_L; i++)whitenoise[i] = dist(engine);
-	//for (int i = 0; i < Frame_L; i++)whitenoise[i] *= sqrt(3.0)*e_rms;
-
-	
+		
+	for (int i = 0; i < Frame_L; i++)whitenoise[i] = dist(engine)*e_rms;
+		
 }
 
 
 void Whisper::createWhisper() {
 
-	double whisper_amp;
 	whisperVoice = std::vector<double>(wav_pre.lengthSample, 0);
+
+	std::vector<double>amp_e(wav_pre.lengthSample, 0);
 
 	for (long i = 0; i < leg; i++) {
 
 		createWhiteNoise();
 		LPC::calc_formant(i);
-	
-		for (int j = 0; j < Order; j++) {
-			//whisperVoice[i*Frame_T + j] += whitenoise[j];
-			whisperVoice[i*Frame_T + j] += signal[j];
-			
-		}
-
-		for (int j = Order; j < Frame_L; j++) {
-			whisper_amp = 0;
-			for (int k = 1; k < a.size(); k++) {
-				//whisper_amp -= a[k] * whitenoise[j - k];								
-				whisper_amp -= a[k] * signal[j - k];
-				
+		
+		for (long j = 0; j<Frame_L; j++) {
+			for (long k = 1; k<a.size(); k++) {
+				if (j >= k) whitenoise[j] -= a[k] * whitenoise[j - k];
 			}
-			whisperVoice[i*Frame_T + j] -= whisper_amp;
+			whisperVoice[i*Frame_T + j] += whitenoise[j];
+			amp_e[i*Frame_T + j] += e[j];
 		}
 	}
 
+	for (long i = 1; i < whisperVoice.size(); i++)whisperVoice[i] += de_emphasis*whisperVoice[i - 1];
 	calc_Normalization(whisperVoice);
-
+	
 	voice = Wave(whisperVoice.size());
 	for (long i = 0; i < whisperVoice.size(); i++)voice[i] = Waving::DoubleToSample(whisperVoice[i]);
-
 	voice.saveWAVE(Widen(whisperName + ".wav"));
+		
+	for (long i = 1; i < amp_e.size(); i++)amp_e[i] = (amp_e[i] + amp_e[i - 1]) / 2.0;
+	calc_Normalization(amp_e);
+	Wave error(amp_e.size());
+	for(long i=0;i<amp_e.size();i++)error[i] = Waving::DoubleToSample(amp_e[i]);
+	error.saveWAVE(Widen(whisperName + "_e.wav"));
 
 }

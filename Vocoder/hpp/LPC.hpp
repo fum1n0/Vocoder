@@ -21,8 +21,8 @@ protected:
 	long leg; // 周期数 = 音声サンプル数/フレーム周期
 	long nowIndexFrame; // 現解析中の周期
 
-	double pre_emphasis = 0.92; // 高音強調割合
-	double de_emphasis = 0.30; // 低音強調割合
+	double pre_emphasis = 0.60; // 高音強調割合
+	double de_emphasis = 0.40; // 低音強調割合
 
 	double e_rms = 0.0; // 二乗平均平方根
 
