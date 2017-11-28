@@ -264,6 +264,10 @@ __pycache__/
 /Vocoder/*.txt
 /Vocoder/Example/
 /Vocoder/Engine/
+/Vocoder/Example/
+/Vocoder/x64/
+
+*.ico
 
 # /RealTimeEqualizer/
 # !/RealTimeEqualizer/cpp/
