@@ -177,6 +177,7 @@
     <Image Include="Icon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\.gitignore" />
     <None Include="Engine\Assets\engine_textures.s3a" />
     <None Include="Engine\Config.ini" />
     <None Include="Engine\dll(x64)\D3D\d3dcompiler_47.dll" />
@@ -276,13 +277,13 @@
   <ItemGroup>
     <ClCompile Include="cpp\LPC.cpp" />
     <ClCompile Include="cpp\Main.cpp" />
-    <ClCompile Include="cpp\Whisper.cpp" />
+    <ClCompile Include="cpp\Vocoder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hpp\header.hpp" />
     <ClInclude Include="hpp\LPC.hpp" />
     <ClInclude Include="hpp\matrix_util.hpp" />
-    <ClInclude Include="hpp\Whisper.hpp" />
+    <ClInclude Include="hpp\Vocoder.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

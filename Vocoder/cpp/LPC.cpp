@@ -53,10 +53,11 @@ void LPC::setLPC(int frameL, int frameT) {
 
 	wav_pre = wav_base;
 	wav_ana = Wave(Frame_L);
-
+	
 	// 高音強調
-	for (int m = 1; m < length; m++)
+	for (size_t m = 1; m < length; m++)
 		wav_pre[m] = Waving::DoubleToSample(((double)wav_base[m].left / 32768.0) - ((double)wav_base[m - 1].left / 32768.0) * pre_emphasis);
+
 
 
 	// Order = (int)(sound.samplingRate() / 1000) + 2;
@@ -127,12 +128,17 @@ void LPC::calc_formant(int indexFrame) {
 
 	LPC::init();
 	LPC::hanning_execute(indexFrame);
+	LPC::preEmphasis();
 	LPC::calc_ACF_FFT();
 	LPC::calc_Levinson_Durbin();
-	LPC::calc_PitchFreq();
+
+	LPC::calc_error();
+	//LPC::calc_PitchFreq();
+	
 	LPC::calc_lpc_gain();
-	LPC::calc_Normalization(lpc_gain);
+	//LPC::calc_Normalization(lpc_gain);
 	LPC::calc_lpc_dBV();
+	
 	//LPC::calc_roots();
 	//LPC::count_formant(indexFrame);
 
@@ -158,14 +164,35 @@ void LPC::init() {
 	e = std::vector<double>(Frame_L, 0);
 	res_auto = std::vector<double>(Frame_L, 0);
 	e_rms = 0.0;
+
+	wav_ana = Wave(Frame_L);
 }
 
 void LPC::hanning_execute(int indexFrame) {
 
 	for (int k = 0; k < Frame_L; k++) {
-		wav_ana[k] = Waving::DoubleToSample(((double)wav_pre[indexFrame*Frame_T + k].left / 32768.0) * (0.5 - 0.5*cos(2 * Pi*k / Frame_L)));
-		signal[k] = wav_ana[k].left / 32768.0; // ハニング補正,正規化
+		wav_ana[k] = wav_base[indexFrame*Frame_T + k];
+		signal[k] = (wav_base[indexFrame*Frame_T + k].left/32768.0 ) * (0.5 - 0.5*cos(2.0 * Pi * k / (double)Frame_L)); // ハニング補正無し
 	}
+	
+
+}
+
+
+void LPC::preEmphasis() {
+
+	std::string file_signal = "signal.txt";
+	std::ofstream writing_signal;
+	writing_signal.open(file_signal, std::ios::out);
+	
+	for (int k = 1; k < Frame_L; k++) {
+		signal[k] = signal[k]-pre_emphasis*signal[k-1];
+	}
+	
+	for (int i = 0; i < Frame_L;i++)writing_signal << i << " " << signal[i] << std::endl;
+
+	writing_signal.close();
+	
 }
 
 
@@ -253,10 +280,13 @@ void LPC::fft_excute(std::vector<double>& signal_ptr, std::vector<double>& re_pt
 void LPC::calc_ACF_FFT() {
 
 	std::vector<double> sig = signal;
+	std::vector<double> sigHanning = signal;
 
-	fft_excute(sig, re, im, 1); // フーリエ変換
+	for (auto& i : sigHanning)i = i*2.0;
 
-	std::string file_dbv = "txt/" + name + "_signal_dbv_" + std::to_string(nowIndexFrame) + ".txt";
+	fft_excute(sigHanning, re, im, 1); // フーリエ変換
+
+	std::string file_dbv = "signal_dbv.txt";
 	std::ofstream writing_dbv;
 	writing_dbv.open(file_dbv, std::ios::out);
 	for (int i = 0; i < Frame_L; i++) {
@@ -377,24 +407,20 @@ void LPC::calc_error() {
 
 
 	// output file
-	std::string file_signal = "signal.txt";
-	std::ofstream writing_signal;
 	std::string file_y = "y.txt";
 	std::ofstream writing_y;
 	std::string file_e = "e.txt";
 	std::ofstream writing_e;	
-	
-	writing_signal.open(file_signal, std::ios::out);
+		
 	writing_y.open(file_y, std::ios::out);
 	writing_e.open(file_e, std::ios::out);
 
 	for (int i = 0; i < Frame_L; i++) {
-		writing_signal << i << " " << signal[i] << std::endl;
 		writing_y << i << " " << y[i] << std::endl;
 		writing_e << i << " " << e[i] << std::endl;
 	}
 
-	writing_signal.close();
+	
 	writing_y.close();
 	writing_e.close();
 
@@ -404,6 +430,9 @@ void LPC::calc_error() {
 void LPC::calc_lpc_gain() {
 
 	double re_tmp, im_tmp;
+
+	std::ofstream writingGain;
+	writingGain.open("lpc_gain.txt", std::ios::out);
 
 	for (int i = 0; i < (int)lpc_gain.size(); i++) {
 		re_tmp = im_tmp = 0;
@@ -416,8 +445,9 @@ void LPC::calc_lpc_gain() {
 		}
 		
 		lpc_gain[i] = 1.0 / (sqrt(re_tmp*re_tmp + im_tmp*im_tmp));
-		
+		writingGain << lpc_gain[i] << std::endl;
 	}
+	writingGain.close();
 
 }
 
@@ -432,18 +462,23 @@ void LPC::calc_Normalization(std::vector<double>& num) {
 
 void LPC::calc_lpc_dBV() {
 
-	std::string file_dbv = "txt/" + name + "_lpc_dbv_" + std::to_string(nowIndexFrame) + ".txt";
+	std::string file_dbv = "lpc_dbv.txt";
 	std::ofstream writing_dbv;
 	writing_dbv.open(file_dbv, std::ios::out);
 	
 	// calc lpc dBV
-	for (int i = 0; i < (int)lpc_gain.size(); i++)lpc_dbv[i] = 20 * log10(lpc_gain[i] );
+	for (int i = 0; i < (int)lpc_gain.size(); i++)lpc_dbv[i] = 20 * log10(lpc_gain[i] * e_rms);
 	
 	// move lpc dBV graph
-	double lpc_dbv_dif = *std::max_element(lpc_dbv.begin(), lpc_dbv.end()) - *std::max_element(dbv.begin(), dbv.end());;
+	/*double lpc_dbv_dif = *std::max_element(lpc_dbv.begin(), lpc_dbv.end()) - *std::max_element(dbv.begin(), dbv.end());;
 	for (int i = 0; i < (int)lpc_gain.size(); i++) {
 		writing_dbv << (double)sound.samplingRate()*i / (double)Frame_L << " " << lpc_dbv[i] - lpc_dbv_dif << std::endl;
+	}*/
+
+	for (int i = 0; i < (int)lpc_gain.size(); i++) {
+		writing_dbv << (double)sound.samplingRate()*i / (double)Frame_L << " " << lpc_dbv[i] << std::endl;
 	}
+
 
 	writing_dbv.close();
 

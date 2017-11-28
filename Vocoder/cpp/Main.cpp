@@ -1,14 +1,14 @@
 ﻿
 
-#include"../hpp/Whisper.hpp"
+#include"../hpp/Vocoder.hpp"
 
 void Main(){
 
 	Console::Open();
 	
-	auto whisper = std::make_shared<Whisper>(1024,512);
-	whisper->createWhisper();
-	
+	auto vocoder = std::make_shared<Vocoder>(1024,512);
+	//vocoderr->createWhisper();
+	vocoder->createRobot();
 	Console::Close();
 
 }
