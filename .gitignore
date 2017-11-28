@@ -263,3 +263,9 @@ __pycache__/
 /Vocoder/*.wav
 /Vocoder/*.txt
 /Vocoder/Example/
+/Vocoder/Engine/
+
+# /RealTimeEqualizer/
+# !/RealTimeEqualizer/cpp/
+# !/RealTimeEqualizer/hpp/
+/Vocoder/Vocoder_log.html
